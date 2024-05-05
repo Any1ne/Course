@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
-import animation
-import gui
+import notes.animation as animation
+import notes.gui as gui
 
 def run_gui():
     # Створення головного вікна

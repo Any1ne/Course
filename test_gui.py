@@ -1,8 +1,10 @@
+import customtkinter as ctk
 import cv2
 from PIL import Image
-import customtkinter as ctk
 import os
 import subprocess
+import json
+import threading
 
 class Test(ctk.CTk):
     def __init__(self):
@@ -104,8 +106,8 @@ class Config_frame(ctk.CTkFrame):
         self.eps = ctk.CTkEntry(self, placeholder_text="eps")
         self.eps.grid(row=3, column=0, padx=20, pady=20, sticky="nswe")
         
-        optionmenu_var = ctk.StringVar(value="option 2")
-        self.methods = ctk.CTkOptionMenu(self,values=["option 1", "option 2"], command=self.optionmenu_callback, variable=optionmenu_var)
+        optionmenu_var = ctk.StringVar(value="BLUE")
+        self.methods = ctk.CTkOptionMenu(self,values=["BLUE", "RED"], command=self.optionmenu_callback, variable=optionmenu_var)
         self.methods.grid(row=4, column=0, padx=20, pady=20, sticky="nswe")
 
     def open_toplevel(self):
@@ -143,20 +145,51 @@ class Config_frame(ctk.CTkFrame):
             self.button.grid_remove()
             self.optionmenu.grid(row=1, column=0, padx=20, pady=20, sticky="nswe")  # Show entries
 
-
-
 class Animation_frame(ctk.CTkFrame):
-
     def __init__(self, master, **kwargs):
         super().__init__(master, **kwargs)
         self.master = master
+
         self.button_anim = ctk.CTkButton(self, text="Animate", command=self.animate)
         self.button_anim.grid(row=0, column=0, padx=20, pady=20, sticky="w")
 
+        self.button_valid = ctk.CTkButton(self, text="Validate", command=self.validate)
+        self.button_valid.grid(row=0, column=1, padx=20, pady=20, sticky="e")
+        self.isvalid= True
+
+    # def animate(self):
+    #     # Start the background threads only if they are not already running
+    #     if not self.animation_thread or not self.animation_thread.is_alive():
+    #         self.animation_thread = AnimationThread(self.config_file, self.animation_dir, self.stop_event)
+    #         self.monitoring_thread = FileMonitoringThread(self.animation_dir, self.stop_event)
+
+    #         self.animation_thread.start()
+    #         self.monitoring_thread.start()
+
+    #     # (Optional) Disable the Animate button to prevent multiple starts
+    #     # self.button_anim.config(state="disabled")
+
+
     def animate(self):
-        command = ["manim", "-ql", "example.py", "PointMovingOnShapes"]
+        project_dir = os.path.dirname(os.path.abspath(__file__))  # Get project directory
+        file_path = os.path.join(project_dir, 'media/videos/example/480p15/partial_movie_files/PointMovingOnShapes/partial_movie_file_list.txt')
+
+        with open('PMFL.txt', 'w') as f:
+            pass
+
+        #Iterate
+        command = ["manim", "-ql", "example_manim.py", "PointMovingOnShapes"]     #Generate animation
         process = subprocess.Popen(command)
+                                                                            #Calculate
+
         process.wait()
+
+        with open(file_path, 'r') as partial_list_file, \
+            open('PMFL.txt', 'a') as pmfl_file:
+            for line in partial_list_file:
+                if line.startswith('file \'file:'):
+                    pmfl_file.write(line[11:-2]+ '\n')                      #Parse file
+
 
         self.master.video_frame.video_file = get_video_files()
         self.master.video_frame.index = 0
@@ -164,18 +197,31 @@ class Animation_frame(ctk.CTkFrame):
         self.master.video_frame.delay = int(1000 / self.master.video_frame.cap.get(cv2.CAP_PROP_FPS))
         self.master.video_frame.state = True
 
+    def validate(self):
+        if self.isvalid:
+            with open('config.json') as f:
+                data = json.load(f)
+
+            # Modify the data
+            data['radius'] = float(self.master.config_frame.Xi.get())
+            data['color'] = self.master.config_frame.methods.get()
+
+            # Dump modified data back to JSON file
+            with open('config.json', 'w') as f:
+                json.dump(data, f, indent=4)
+            
 class Text_frame(ctk.CTkFrame):
      def __init__(self, master, **kwargs):
         super().__init__(master, **kwargs)
 
 def get_video_files():
-    project_dir = os.path.dirname(os.path.abspath(__file__))  # Get project directory
-    file_path = os.path.join(project_dir, 'media/videos/example/480p15/partial_movie_files/PointMovingOnShapes/partial_movie_file_list.txt')
-
-    with open(file_path, 'r') as f:
-        video_file_list = [line.strip()[11:-1] for line in f if line.startswith('file \'file:')]
-        
+    with open("PMFL.txt", 'r') as f:
+        video_file_list = [line.strip() for line in f]
     return video_file_list
+
+def generate_animation(config_file, animation_dir, file_path):
+    command = ["manim", "-ql", file_path, "PointMovingOnShapes"]
+    subprocess.Popen(command)
 
 def main():
     test = Test()

@@ -1,5 +1,4 @@
 from manim import *
-import subprocess
 import json
 
 class PointMovingOnShapes(Scene):
