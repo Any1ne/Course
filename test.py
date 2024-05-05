@@ -2,36 +2,55 @@ import cv2
 from PIL import Image
 import customtkinter as ctk
 import os
+import subprocess
 
-class VideoPlayer:
-    def __init__(self, video_file, master=None, width=100, height=100):
-        self.video_file = video_file
+class Test(ctk.CTk):
+    def __init__(self):
+        super().__init__()
+
+        self.title("TEST")
+        self.geometry("1000x1000")
+        #self.grid_columnconfigure(0, weight=1)
+        #self.grid_rowconfigure(0, weight=1)
+
+        self.video_frame = Video_frame(self)
+        self.video_frame.configure(fg_color = "orange")
+        self.video_frame.grid(row=0, column=0, padx=10, pady=(10, 0), sticky="nsw", rowspan=4) 
+
+        self.config_frame = Config_frame(self)
+        self.config_frame.grid(row=0, column=1, padx=10, pady=(10, 0), sticky="ne")
+
+        self.animation_frame = Animation_frame(self)
+        self.animation_frame.grid(row=2, column=1, padx=10, pady=(10, 0), sticky="e")
+
+        self.text_frame = Text_frame(self)
+        self.text_frame.grid(row=3, column=1, padx=10, pady=(10, 0), sticky="se")
+
+        self.video_file = []
+
+class Video_frame(ctk.CTkFrame):
+    def __init__(self, master=None, width=100, height=100, **kwargs):
+        super().__init__(master, **kwargs)
+        self.video_file = []
         self.index = 0
+        self.isplaying = False
 
-        self.cap = cv2.VideoCapture(self.video_file[self.index])
-        self.master = master
-        self.video_panel = ctk.CTkLabel(master, width=width, height=height)
-        self.video_panel.grid(row=0, column=1, padx=20, pady=20, sticky="w", columnspan=2)
-        self.delay = int(1000 / self.cap.get(cv2.CAP_PROP_FPS))
-        self.state = True
+        self.video_panel = ctk.CTkLabel(self, width=width, height=height)
+        self.grid_rowconfigure(0, weight=1)
+        self.video_panel.grid(row=0, column=1, padx=20, pady=20, sticky="nswe", columnspan=2)
 
-        # Create the button within the class initialization
-        self.button_text = "play"
-        self.button = ctk.CTkButton(master, text=self.button_text, command=self.play_pause)
+        self.button_text = "Play"
+        self.button = ctk.CTkButton(self, text=self.button_text, command=self.play_pause)
         self.button.grid(row=1, column=1, padx=20, pady=20, sticky="e")
 
-        self.button_step = ctk.CTkButton(master, text="step", command=self.step)
+        self.button_step = ctk.CTkButton(self, text="Step forward", command=self.step)
         self.button_step.grid(row=1, column=2, padx=20, pady=20, sticky="w")
-        
-        self.master.grid_columnconfigure(0, weight=1)
-        self.master.grid_columnconfigure(2, weight=1)
-        self.master.grid_rowconfigure((0, 3), weight=1)
 
     def step(self):
         self.cap = cv2.VideoCapture(self.video_file[self.index])
         self.delay = int(1000 / self.cap.get(cv2.CAP_PROP_FPS))
 
-        print(self.video_file[self.index], self.index)
+        #print(self.video_file[self.index], self.index)
         self.update()
 
         if self.index < len(self.video_file)-1:
@@ -40,7 +59,7 @@ class VideoPlayer:
             print("END")
 
     def update(self):
-        if self.state:
+        if self.isplaying:
             ret, frame = self.cap.read()
             if ret:
                 frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
@@ -59,37 +78,108 @@ class VideoPlayer:
             self.master.after(self.delay, self.update)
 
     def play_pause(self):
-        if self.state:
-            self.button_text = "play"
+        if self.isplaying:
+            self.button_text = "Play"
         else:
-            self.button_text = "pause"
+            self.button_text = "Pause"
         self.button.configure(text=self.button_text)
-        self.state = not self.state
+        self.isplaying = not self.isplaying
 
-    def is_playing(self):
-        return self.button_text == "pause"
+class Config_frame(ctk.CTkFrame):
+    def __init__(self, master, **kwargs):
+        super().__init__(master, **kwargs)
+        switch_var = ctk.StringVar(value="off")
+        self.switch = ctk.CTkSwitch(self, text="Function", command=self.open_toplevel, variable=switch_var, onvalue="on", offvalue="off")
+        self.switch.grid(row=0, column=0, padx=20, pady=20, sticky="nswe")
 
-    def update_button_text(self):
-        self.button_text = "play" if self.is_playing() else "pause"
-        # Update the button text in the main window (assuming it's accessible)
-        ctk.button.configure(text=self.button_text)
+        optionmenu_var = ctk.StringVar(value="option 2")
+        self.optionmenu = ctk.CTkOptionMenu(self,values=["option 1", "option 2"], command=self.optionmenu_callback, variable=optionmenu_var)
+        self.optionmenu.grid(row=1, column=0, padx=20, pady=20, sticky="nswe")
 
-def main():
+        self.toplevel_window= None
+
+        self.Xi = ctk.CTkEntry(self, placeholder_text="X")
+        self.Xi.grid(row=2, column=0, padx=20, pady=20, sticky="nswe")
+
+        self.eps = ctk.CTkEntry(self, placeholder_text="eps")
+        self.eps.grid(row=3, column=0, padx=20, pady=20, sticky="nswe")
+        
+        optionmenu_var = ctk.StringVar(value="option 2")
+        self.methods = ctk.CTkOptionMenu(self,values=["option 1", "option 2"], command=self.optionmenu_callback, variable=optionmenu_var)
+        self.methods.grid(row=4, column=0, padx=20, pady=20, sticky="nswe")
+
+    def open_toplevel(self):
+        if self.toplevel_window is None or not self.toplevel_window.winfo_exists():
+            self.toplevel_window = self.ToplevelWindow(self)  # create window if its None or destroyed
+        else:
+            self.toplevel_window.focus()  # if window exists focus it
+
+    class ToplevelWindow(ctk.CTkToplevel):
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            self.geometry("400x300")
+
+            self.label = ctk.CTkLabel(self, text="ToplevelWindow")
+            self.label.pack(padx=20, pady=20)
+
+            self.entry = ctk.CTkEntry(self, placeholder_text="Entry")
+            self.entry.grid(row=1, column=0, padx=20, pady=20, sticky="nswe")
+
+            self.button= ctk.CTkButton(self, text="CTkButton")
+            self.button.grid(row=1, column=1, padx=20, pady=20, sticky="nswe")
+            self.entry.grid_remove()
+            self.button.grid_remove()
+        
+    def optionmenu_callback(self, choice):
+        print("optionmenu dropdown clicked:", choice)
+
+    def switch_event(self):
+        if self.switch.get() == "on":
+            self.optionmenu.grid_remove()  # Hide optionmenu
+            self.entry.grid(row=1, column=0, padx=20, pady=20, sticky="nswe")  # Show entries
+            self.button.grid(row=1, column=1, padx=20, pady=20, sticky="nswe")
+        else:
+            self.entry.grid_remove()  # Hide optionmenu
+            self.button.grid_remove()
+            self.optionmenu.grid(row=1, column=0, padx=20, pady=20, sticky="nswe")  # Show entries
+
+
+
+class Animation_frame(ctk.CTkFrame):
+
+    def __init__(self, master, **kwargs):
+        super().__init__(master, **kwargs)
+        self.master = master
+        self.button_anim = ctk.CTkButton(self, text="Animate", command=self.animate)
+        self.button_anim.grid(row=0, column=0, padx=20, pady=20, sticky="w")
+
+    def animate(self):
+        command = ["manim", "-ql", "example.py", "PointMovingOnShapes"]
+        process = subprocess.Popen(command)
+        process.wait()
+
+        self.master.video_frame.video_file = get_video_files()
+        self.master.video_frame.index = 0
+        self.master.video_frame.cap = cv2.VideoCapture(self.master.video_frame.video_file[self.master.video_frame.index])
+        self.master.video_frame.delay = int(1000 / self.master.video_frame.cap.get(cv2.CAP_PROP_FPS))
+        self.master.video_frame.state = True
+
+class Text_frame(ctk.CTkFrame):
+     def __init__(self, master, **kwargs):
+        super().__init__(master, **kwargs)
+
+def get_video_files():
     project_dir = os.path.dirname(os.path.abspath(__file__))  # Get project directory
     file_path = os.path.join(project_dir, 'media/videos/example/480p15/partial_movie_files/PointMovingOnShapes/partial_movie_file_list.txt')
 
     with open(file_path, 'r') as f:
         video_file_list = [line.strip()[11:-1] for line in f if line.startswith('file \'file:')]
+        
+    return video_file_list
 
-    # Create the main window
-    window = ctk.CTk()
-    window.geometry('800x800')
-
-    # Create the video player
-    video = VideoPlayer(video_file_list, master=window, width=500, height=500)
-
-    # Start the mainloop
-    window.mainloop()
+def main():
+    test = Test()
+    test.mainloop()
 
 if __name__ == "__main__":
     main()

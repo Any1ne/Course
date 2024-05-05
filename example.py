@@ -1,9 +1,17 @@
 from manim import *
 import subprocess
+import json
 
 class PointMovingOnShapes(Scene):
     def construct(self):
-        circle = Circle(radius=1, color=BLUE)
+        with open('config.json') as f:
+            config = json.load(f)
+        
+        radius = config['radius']
+        color = config['color']
+
+        circle = Circle(radius=radius, color=color)
+
         dot = Dot()
         dot2 = dot.copy().shift(RIGHT)
         self.add(dot)
@@ -17,5 +25,4 @@ class PointMovingOnShapes(Scene):
         self.play(Rotating(dot, about_point=[2, 0, 0]), run_time=1.5)
         self.wait()
 
-command = ["manim", "-p", "-ql", "example.py", "PointMovingOnShapes"]
-subprocess.Popen(command)
+
