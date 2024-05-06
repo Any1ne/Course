@@ -1,40 +1,40 @@
 import customtkinter as ctk
 import cv2
 from PIL import Image
-import os
-import subprocess
 import json
+import subprocess
+import os
 import threading
+import time
 
 class Test(ctk.CTk):
     def __init__(self):
         super().__init__()
 
         self.title("TEST")
-        self.geometry("1000x1000")
-        #self.grid_columnconfigure(0, weight=1)
-        #self.grid_rowconfigure(0, weight=1)
+        self.geometry("1200x800")
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure(0, weight=1)
 
         self.video_frame = Video_frame(self)
         self.video_frame.configure(fg_color = "orange")
-        self.video_frame.grid(row=0, column=0, padx=10, pady=(10, 0), sticky="nsw", rowspan=4) 
+        self.video_frame.grid(row=0, column=0, padx=10, pady=(10, 0), sticky="nswe", columnspan=1, rowspan=4) 
 
         self.config_frame = Config_frame(self)
-        self.config_frame.grid(row=0, column=1, padx=10, pady=(10, 0), sticky="ne")
+        self.config_frame.grid(row=0, column=1, padx=10, pady=(10, 0), sticky="nswe", columnspan=2)
 
         self.animation_frame = Animation_frame(self)
-        self.animation_frame.grid(row=2, column=1, padx=10, pady=(10, 0), sticky="e")
+        self.animation_frame.grid(row=2, column=1, padx=10, pady=(10, 0), sticky="nswe", columnspan=2)
 
         self.text_frame = Text_frame(self)
-        self.text_frame.grid(row=3, column=1, padx=10, pady=(10, 0), sticky="se")
-
-        self.video_file = []
+        self.text_frame.grid(row=3, column=1, padx=10, pady=(10, 0), sticky="nswe", columnspan=2)
 
 class Video_frame(ctk.CTkFrame):
     def __init__(self, master=None, width=100, height=100, **kwargs):
         super().__init__(master, **kwargs)
-        self.video_file = []
-        self.index = 0
+        self.master = master
+
+        self.video_file_list = []
         self.isplaying = False
 
         self.video_panel = ctk.CTkLabel(self, width=width, height=height)
@@ -42,23 +42,50 @@ class Video_frame(ctk.CTkFrame):
         self.video_panel.grid(row=0, column=1, padx=20, pady=20, sticky="nswe", columnspan=2)
 
         self.button_text = "Play"
-        self.button = ctk.CTkButton(self, text=self.button_text, command=self.play_pause)
-        self.button.grid(row=1, column=1, padx=20, pady=20, sticky="e")
+        self.play_pause_b = ctk.CTkButton(self, text=self.button_text, command=self.play_pause)
+        self.play_pause_b.grid(row=1, column=1, padx=20, pady=20, sticky="s")
 
-        self.button_step = ctk.CTkButton(self, text="Step forward", command=self.step)
-        self.button_step.grid(row=1, column=2, padx=20, pady=20, sticky="w")
+        self.step_for_b = ctk.CTkButton(self, text="Step forward", command=self.step_for)
+        self.step_for_b.grid(row=1, column=2, padx=20, pady=20, sticky="se")
 
-    def step(self):
-        self.cap = cv2.VideoCapture(self.video_file[self.index])
-        self.delay = int(1000 / self.cap.get(cv2.CAP_PROP_FPS))
+        self.step_back_b = ctk.CTkButton(self, text="Step backward", command=self.step_back)
+        self.step_back_b.grid(row=1, column=0, padx=20, pady=20, sticky="sw")
 
-        #print(self.video_file[self.index], self.index)
-        self.update()
+        self.update_video_list()
 
-        if self.index < len(self.video_file)-1:
-            self.index += 1
+    def step_for(self):
+        if len(self.video_file_list) != 0:
+            self.cap = cv2.VideoCapture(self.video_file_list[self.index])
+            self.delay = int(1000 / self.cap.get(cv2.CAP_PROP_FPS))
+
+            self.update()
+
+            if self.index < len(self.video_file_list)-1:
+                self.index += 1
+            else:
+                self.master.text_frame.print_text("END")
         else:
-            print("END")
+            self.master.text_frame.print_text("video_file_list empty")
+
+    def play_pause(self):
+        if self.isplaying:
+            self.button_text = "Play"
+        else:
+            self.button_text = "Pause"
+        self.play_pause_b.configure(text=self.button_text)
+        self.isplaying = not self.isplaying
+
+    def step_back(self):
+        if len(self.video_file_list) != 0:
+            if self.index > 0:
+                self.index -= 1
+            else:
+                self.master.text_frame.print_text("Start")
+
+            self.cap = cv2.VideoCapture(self.video_file_list[self.index])
+            self.delay = int(1000 / self.cap.get(cv2.CAP_PROP_FPS))
+        else:
+            self.master.text_frame.print_text("video_file_list empty")
 
     def update(self):
         if self.isplaying:
@@ -79,43 +106,68 @@ class Video_frame(ctk.CTkFrame):
         else:
             self.master.after(self.delay, self.update)
 
-    def play_pause(self):
-        if self.isplaying:
-            self.button_text = "Play"
+    def update_video_list(self):
+        if len(self.video_file_list) == 0:
+            self.video_file_list = get_video_files()
+            self.index = 0
+            self.cap = cv2.VideoCapture(self.video_file_list[self.index])
+            self.delay = int(1000 / self.cap.get(cv2.CAP_PROP_FPS))  
         else:
-            self.button_text = "Pause"
-        self.button.configure(text=self.button_text)
-        self.isplaying = not self.isplaying
+            video_file_list = get_video_files()
+            for video_file in video_file_list:
+                if not video_file in self.video_file_list: ### adding vided on the list !!!!
+                    self.video_file_list.append(video_file)
 
 class Config_frame(ctk.CTkFrame):
     def __init__(self, master, **kwargs):
         super().__init__(master, **kwargs)
-        switch_var = ctk.StringVar(value="off")
-        self.switch = ctk.CTkSwitch(self, text="Function", command=self.open_toplevel, variable=switch_var, onvalue="on", offvalue="off")
-        self.switch.grid(row=0, column=0, padx=20, pady=20, sticky="nswe")
+        switch_var = ctk.StringVar(value="build-in")
+        self.func_s = ctk.CTkSwitch(self, text="Function", command=self.custom_build_in, variable=switch_var, onvalue="custom", offvalue="build-in")
+        self.func_s.grid(row=0, column=0, padx=20, pady=20, sticky="nswe")
 
-        optionmenu_var = ctk.StringVar(value="option 2")
-        self.optionmenu = ctk.CTkOptionMenu(self,values=["option 1", "option 2"], command=self.optionmenu_callback, variable=optionmenu_var)
-        self.optionmenu.grid(row=1, column=0, padx=20, pady=20, sticky="nswe")
+        func_var = ctk.StringVar(value="x**2+2*x+1")
+        self.func_o = ctk.CTkOptionMenu(self,values=["x**2+2*x+1", "x**4+3*x-4"], command=self.optionmenu_callback, variable=func_var)
+        self.func_o.grid(row=1, column=0, padx=20, pady=20, sticky="nswe")
 
         self.toplevel_window= None
 
-        self.Xi = ctk.CTkEntry(self, placeholder_text="X")
-        self.Xi.grid(row=2, column=0, padx=20, pady=20, sticky="nswe")
+        self.xi_e = ctk.CTkEntry(self, placeholder_text="X")
+        self.xi_e.grid(row=2, column=0, padx=20, pady=20, sticky="nswe")
 
-        self.eps = ctk.CTkEntry(self, placeholder_text="eps")
-        self.eps.grid(row=3, column=0, padx=20, pady=20, sticky="nswe")
-        
-        optionmenu_var = ctk.StringVar(value="BLUE")
-        self.methods = ctk.CTkOptionMenu(self,values=["BLUE", "RED"], command=self.optionmenu_callback, variable=optionmenu_var)
-        self.methods.grid(row=4, column=0, padx=20, pady=20, sticky="nswe")
+        self.resta_e = ctk.CTkEntry(self, placeholder_text="a")
+        self.resta_e.grid(row=3, column=0, padx=20, pady=20, sticky="nswe")
 
-    def open_toplevel(self):
-        if self.toplevel_window is None or not self.toplevel_window.winfo_exists():
-            self.toplevel_window = self.ToplevelWindow(self)  # create window if its None or destroyed
+        self.restb_e = ctk.CTkEntry(self, placeholder_text="b")
+        self.restb_e.grid(row=3, column=1, padx=20, pady=20, sticky="nswe")
+
+        self.eps_e = ctk.CTkEntry(self, placeholder_text="eps")
+        self.eps_e.grid(row=4, column=0, padx=20, pady=20, sticky="nswe")
+
+        methods_var = ctk.StringVar(value="Newton's")
+        self.methods_o = ctk.CTkOptionMenu(self,values=["Newton's"], variable= methods_var )
+        self.methods_o.grid(row=5, column=0, padx=20, pady=20, sticky="nswe")
+
+        self.iter_e = ctk.CTkEntry(self, placeholder_text="Number of Iterations")
+        self.iter_e.grid(row=6, column=0, padx=20, pady=20, sticky="nswe")
+        self.isvalid = True
+
+    def custom_build_in(self):
+        if self.func_s.get() == "build-in":
+            self.func_o.grid_remove()  # Hide TopWindow
+            self.func_o.grid(row=1, column=0, padx=20, pady=20, sticky="nswe") #Hide optionmenu 
         else:
-            self.toplevel_window.focus()  # if window exists focus it
+            self.func_o.grid_remove()  # Hide optionmenu
 
+             # Show TopWindow
+
+        # if self.toplevel_window is None or not self.toplevel_window.winfo_exists():
+        #     self.toplevel_window = self.ToplevelWindow(self)  # create window if its None or destroyed
+        # else:
+        #     self.toplevel_window.focus()  # if window exists focus it
+
+    def optionmenu_callback(self, choice):
+        print("optionmenu dropdown clicked:", choice)
+        
     class ToplevelWindow(ctk.CTkToplevel):
         def __init__(self, *args, **kwargs):
             super().__init__(*args, **kwargs)
@@ -132,96 +184,102 @@ class Config_frame(ctk.CTkFrame):
             self.entry.grid_remove()
             self.button.grid_remove()
         
-    def optionmenu_callback(self, choice):
-        print("optionmenu dropdown clicked:", choice)
-
-    def switch_event(self):
-        if self.switch.get() == "on":
-            self.optionmenu.grid_remove()  # Hide optionmenu
-            self.entry.grid(row=1, column=0, padx=20, pady=20, sticky="nswe")  # Show entries
-            self.button.grid(row=1, column=1, padx=20, pady=20, sticky="nswe")
-        else:
-            self.entry.grid_remove()  # Hide optionmenu
-            self.button.grid_remove()
-            self.optionmenu.grid(row=1, column=0, padx=20, pady=20, sticky="nswe")  # Show entries
-
 class Animation_frame(ctk.CTkFrame):
     def __init__(self, master, **kwargs):
         super().__init__(master, **kwargs)
         self.master = master
 
         self.button_anim = ctk.CTkButton(self, text="Animate", command=self.animate)
-        self.button_anim.grid(row=0, column=0, padx=20, pady=20, sticky="w")
+        self.button_anim.grid(row=0, column=0, padx=20, pady=20, sticky="we")
 
         self.button_valid = ctk.CTkButton(self, text="Validate", command=self.validate)
-        self.button_valid.grid(row=0, column=1, padx=20, pady=20, sticky="e")
-        self.isvalid= True
+        self.button_valid.grid(row=0, column=1, padx=20, pady=20, sticky="we")
 
-    # def animate(self):
-    #     # Start the background threads only if they are not already running
-    #     if not self.animation_thread or not self.animation_thread.is_alive():
-    #         self.animation_thread = AnimationThread(self.config_file, self.animation_dir, self.stop_event)
-    #         self.monitoring_thread = FileMonitoringThread(self.animation_dir, self.stop_event)
-
-    #         self.animation_thread.start()
-    #         self.monitoring_thread.start()
-
-    #     # (Optional) Disable the Animate button to prevent multiple starts
-    #     # self.button_anim.config(state="disabled")
-
+    default_config = {"Func": " ", 
+                      "Derivative": " ", 
+                      "Xi": 0.0,
+                      "Value": 0.0, 
+                      "Eps": 0.0, "Rest": [0, 0], 
+                      "Method": "Newtons", 
+                      "Iteration": 0, 
+                      "Number of Iteration": 0,
+                      "Stop_Criteria": False}
+    
+    with open('config.json', 'w') as f:
+        json.dump(default_config, f, indent=4)
 
     def animate(self):
-        project_dir = os.path.dirname(os.path.abspath(__file__))  # Get project directory
-        file_path = os.path.join(project_dir, 'media/videos/example/480p15/partial_movie_files/PointMovingOnShapes/partial_movie_file_list.txt')
+        command_gap = ["python", "Generate_animations_process.py"]
+        gap_process = subprocess.Popen(command_gap)
 
-        with open('PMFL.txt', 'w') as f:
-            pass
-
-        #Iterate
-        command = ["manim", "-ql", "example_manim.py", "PointMovingOnShapes"]     #Generate animation
-        process = subprocess.Popen(command)
-                                                                            #Calculate
-
-        process.wait()
-
-        with open(file_path, 'r') as partial_list_file, \
-            open('PMFL.txt', 'a') as pmfl_file:
-            for line in partial_list_file:
-                if line.startswith('file \'file:'):
-                    pmfl_file.write(line[11:-2]+ '\n')                      #Parse file
-
-
-        self.master.video_frame.video_file = get_video_files()
-        self.master.video_frame.index = 0
-        self.master.video_frame.cap = cv2.VideoCapture(self.master.video_frame.video_file[self.master.video_frame.index])
-        self.master.video_frame.delay = int(1000 / self.master.video_frame.cap.get(cv2.CAP_PROP_FPS))
-        self.master.video_frame.state = True
+        monitor_thread = threading.Thread(target=fmt_run, args=(self.master,))
+        monitor_thread.start()
 
     def validate(self):
-        if self.isvalid:
+        self.isvalid()
+
+        if self.master.config_frame.isvalid:
             with open('config.json') as f:
-                data = json.load(f)
+                config = json.load(f)
 
-            # Modify the data
-            data['radius'] = float(self.master.config_frame.Xi.get())
-            data['color'] = self.master.config_frame.methods.get()
+            if self.master.config_frame.func_s.get() == "build-in":
+                config['Func'] = self.master.config_frame.func_o.get()
+            else:
+                pass # 
+            config['Xi'] = float(self.master.config_frame.xi_e.get())
+            config['Eps'] = float(self.master.config_frame.eps_e.get())
+            config['Rest'] = [self.master.config_frame.resta_e.get(), self.master.config_frame.restb_e.get()]
+            config['Number of Iteration'] = int(self.master.config_frame.iter_e.get())
 
-            # Dump modified data back to JSON file
             with open('config.json', 'w') as f:
-                json.dump(data, f, indent=4)
+                json.dump(config, f, indent=4)
+        else:
+            self.master.text_frame.print_text("Config is not valid")
+
+    def isvalid(self):
+       ### check all data configueation
+       pass 
             
 class Text_frame(ctk.CTkFrame):
-     def __init__(self, master, **kwargs):
+    def __init__(self, master, **kwargs):
         super().__init__(master, **kwargs)
+        self.textbox = ctk.CTkTextbox(master=self, width=400, corner_radius=0, state = "disabled")
+        self.textbox.grid(row=0, column=0, padx=20, pady=20, sticky="nswe", columnspan=2)
+
+        #self.print_text("Hi world!")
+
+    def print_text(self, text):
+        self.textbox.configure(state="normal")
+        self.textbox.insert("0.0", str(text)+'\n')
+        self.textbox.configure(state="disabled")
+
 
 def get_video_files():
     with open("PMFL.txt", 'r') as f:
         video_file_list = [line.strip() for line in f]
     return video_file_list
 
-def generate_animation(config_file, animation_dir, file_path):
-    command = ["manim", "-ql", file_path, "PointMovingOnShapes"]
-    subprocess.Popen(command)
+def fmt_run(master):
+    with open('PMFL.txt', 'w') as f:
+        f.write('')
+    last_modified = 0
+
+    stopCriteria = False
+    while not stopCriteria :
+        current_modified = os.stat('PMFL.txt').st_mtime
+        
+        if current_modified > last_modified: ### Checking ???
+            master.text_frame.print_text("Updating!!!")
+            master.video_frame.update_video_list()
+            master.text_frame.print_text(len(master.video_frame.video_file_list))
+        
+        with open('config.json') as f:
+            config = json.load(f)
+
+        stopCriteria = config["Stop_Criteria"] or (config["Iteration"]>=config["Number of Iteration"])
+        time.sleep(1)
+
+    master.text_frame.print_text("Finished!!!")
 
 def main():
     test = Test()

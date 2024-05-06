@@ -1,4 +1,1 @@
-{
-    "radius": 1.0,
-    "color": "BLUE"
-}
+{"Func": "x**2+2*x+1", "Derivative": " ", "Xi": -0.99993896484375, "Value": 1.4901161193847656e-08, "Eps": 0.0001, "Rest": ["0", "1"], "Method": "Newtons", "Iteration": 15, "Number of Iteration": 100, "Stop_Criteria": true}

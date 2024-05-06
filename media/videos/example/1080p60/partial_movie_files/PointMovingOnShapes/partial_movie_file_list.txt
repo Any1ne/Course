@@ -1,6 +1,0 @@
-# This file is used internally by FFMPEG.
-file 'file:H:/Programming/University/Course/media/videos/example/1080p60/partial_movie_files/PointMovingOnShapes/3977891868_870242139_4159515603.mp4'
-file 'file:H:/Programming/University/Course/media/videos/example/1080p60/partial_movie_files/PointMovingOnShapes/2852726489_3199290941_1844001017.mp4'
-file 'file:H:/Programming/University/Course/media/videos/example/1080p60/partial_movie_files/PointMovingOnShapes/2852726489_1156323574_3298866547.mp4'
-file 'file:H:/Programming/University/Course/media/videos/example/1080p60/partial_movie_files/PointMovingOnShapes/2852726489_4050480805_1844001017.mp4'
-file 'file:H:/Programming/University/Course/media/videos/example/1080p60/partial_movie_files/PointMovingOnShapes/2852726489_1704852926_636132357.mp4'
