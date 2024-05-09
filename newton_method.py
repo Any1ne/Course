@@ -1,14 +1,16 @@
 import json
 import sympy
-import string
 
 class NewtonMethod:
     def __init__(self):
         with open('config.json') as f:
             config = json.load(f)
 
-        self.func_str = config['Func']
-        self.xi = config['Xi']
+        self.func_str = config['f(x)']
+        if config['Iteration'] == 0:
+            self.xi = config['xi']
+        else:
+            self.xi = config['xi+1']
         self.eps = config['Eps']
         self.Rest = config['Rest']
         self.Method = config['Method']
@@ -16,21 +18,24 @@ class NewtonMethod:
 
         x = sympy.symbols('x')
         self.func_expr = eval(self.func_str)
-        self.f_val = self.Function(self.xi)
+        self.f_val = self.func_expr.subs('x', self.xi).evalf()
+        self.f_prime = self.find_derivative(self.func_expr)
+        self.f_sec_prime = self.find_derivative(self.func_expr)
+        self.tangent = self.find_tanget()
 
-    def Function(self, x):
-        return self.func_expr.subs('x', x).evalf()
-    
-    def find_derivative(self):
+    def find_derivative(self, func_expr):
         x = sympy.symbols('x')  
-        f_expr = eval(self.func_str)  
-        f_prime = sympy.diff(f_expr, x)
-        return f_prime
-  
+        func_prime = sympy.diff(func_expr, x)
+        return func_prime
+    
+    def find_tanget(self):
+        x = sympy.symbols('x')  
+        tanget = self.f_prime.subs('x', self.xi).evalf()*(x-self.xi)+ self.func_expr.subs('x', self.xi).evalf()
+        return tanget
+    
     def Iteration(self):
         x = self.xi
-        f_prime = self.find_derivative()
-        f_prime_val = f_prime.subs('x', x).evalf()
+        f_prime_val = self.f_prime.subs('x', x).evalf()
         self.xi = x - self.f_val / f_prime_val
         if abs(x-self.xi)<self.eps:
             self.criteria = True
@@ -39,8 +44,14 @@ class NewtonMethod:
         with open('config.json', "r") as f:
             config = json.load(f)
 
-        config['Xi'] = float(self.xi)
-        config['Value'] = float(self.f_val)
+        if config['Iteration'] == 0: 
+            config['dx'] = str(self.f_prime)
+            config['d2x'] = str(self.f_sec_prime)
+        config['tangent'] = str(self.tangent)
+        config['xi'] = config['xi+1']
+        config['xi+1'] = float(self.xi)
+        config['f(xi)'] = float(self.f_val)
+        config['f(xi+1)'] = float(self.func_expr.subs('x', self.xi).evalf())
         config['Rest'] = self.Rest
         config['Iteration'] += 1
         config['Stop_Criteria'] = self.criteria
@@ -49,25 +60,9 @@ class NewtonMethod:
         with open('config.json', "w") as f:
             json.dump(config, f)
 
-def upload_value_derivative():
-    with open('config.json', "r") as f:
-        config = json.load(f)
-
-    x = sympy.symbols('x')
-    f_expr = eval(config['Func'])  
-    f_value = f_expr.subs('x', x).evalf()
-    f_prime = sympy.diff(f_expr, x)
-    
-
-    config['Value'] = f_value
-    config['Derivative'] = f_prime
-    
-    with open('config.json', "w") as f:
-        json.dump(config, f)
-
 def test():
     N = NewtonMethod()
     N.Iteration()
     N.update_config()
-
+    
 test()

@@ -1,1 +1,1 @@
-{"Func": "x**2+2*x+1", "Derivative": " ", "Xi": -0.99993896484375, "Value": 1.4901161193847656e-08, "Eps": 0.0001, "Rest": ["0", "1"], "Method": "Newtons", "Iteration": 15, "Number of Iteration": 100, "Stop_Criteria": true}
+{"f(x)": "x**2+2*x+1", "dx": "2*x + 2", "d2x": "2*x + 2", "tangent": "2.0*x + 1.0", "xi": 0.0, "xi+1": -0.5, "f(xi)": 1.0, "f(xi+1)": 0.25, "Eps": 0.01, "Rest": ["", ""], "Method": "Newtons", "Quality": "h", "Iteration": 2, "Number of Iteration": 20, "Stop_Criteria": false}

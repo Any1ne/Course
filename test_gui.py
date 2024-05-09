@@ -51,7 +51,7 @@ class Video_frame(ctk.CTkFrame):
         self.step_back_b = ctk.CTkButton(self, text="Step backward", command=self.step_back)
         self.step_back_b.grid(row=1, column=0, padx=20, pady=20, sticky="sw")
 
-        self.update_video_list()
+        # self.update_video_list()
 
     def step_for(self):
         if len(self.video_file_list) != 0:
@@ -110,6 +110,8 @@ class Video_frame(ctk.CTkFrame):
         if len(self.video_file_list) == 0:
             self.video_file_list = get_video_files()
             self.index = 0
+            print(self.video_file_list)
+            print(self.index)
             self.cap = cv2.VideoCapture(self.video_file_list[self.index])
             self.delay = int(1000 / self.cap.get(cv2.CAP_PROP_FPS))  
         else:
@@ -195,15 +197,23 @@ class Animation_frame(ctk.CTkFrame):
         self.button_valid = ctk.CTkButton(self, text="Validate", command=self.validate)
         self.button_valid.grid(row=0, column=1, padx=20, pady=20, sticky="we")
 
-    default_config = {"Func": " ", 
-                      "Derivative": " ", 
-                      "Xi": 0.0,
-                      "Value": 0.0, 
-                      "Eps": 0.0, "Rest": [0, 0], 
-                      "Method": "Newtons", 
-                      "Iteration": 0, 
-                      "Number of Iteration": 0,
-                      "Stop_Criteria": False}
+    default_config = {
+    "f(x)": "x**3+2*x+1",
+    "dx": "3*x**2+2",
+    "d2x": "6*x",
+    "tangent": "5*x-1",
+    "xi": 1.0,
+    "xi+1": 0.0,
+    "f(xi)": 0.0,
+    "f(xi+1)": 0.0,
+    "Eps": 0.01,
+    "Rest": [0, 0],
+    "Method": "Newtons",
+    "Quality": "h",
+    "Iteration": 0,
+    "Number of Iteration": 20,
+    "Stop_Criteria": False,
+}
     
     with open('config.json', 'w') as f:
         json.dump(default_config, f, indent=4)
@@ -223,10 +233,10 @@ class Animation_frame(ctk.CTkFrame):
                 config = json.load(f)
 
             if self.master.config_frame.func_s.get() == "build-in":
-                config['Func'] = self.master.config_frame.func_o.get()
+                config['f(x)'] = self.master.config_frame.func_o.get()
             else:
                 pass # 
-            config['Xi'] = float(self.master.config_frame.xi_e.get())
+            config['xi'] = float(self.master.config_frame.xi_e.get())
             config['Eps'] = float(self.master.config_frame.eps_e.get())
             config['Rest'] = [self.master.config_frame.resta_e.get(), self.master.config_frame.restb_e.get()]
             config['Number of Iteration'] = int(self.master.config_frame.iter_e.get())
@@ -253,7 +263,6 @@ class Text_frame(ctk.CTkFrame):
         self.textbox.insert("0.0", str(text)+'\n')
         self.textbox.configure(state="disabled")
 
-
 def get_video_files():
     with open("PMFL.txt", 'r') as f:
         video_file_list = [line.strip() for line in f]
@@ -262,13 +271,13 @@ def get_video_files():
 def fmt_run(master):
     with open('PMFL.txt', 'w') as f:
         f.write('')
-    last_modified = 0
+    last_mtime = os.path.getmtime('PMFL.txt')
 
     stopCriteria = False
     while not stopCriteria :
-        current_modified = os.stat('PMFL.txt').st_mtime
+        current_modified = os.path.getmtime('PMFL.txt')
         
-        if current_modified > last_modified: ### Checking ???
+        if current_modified != last_mtime:                                        ### Checking ???
             master.text_frame.print_text("Updating!!!")
             master.video_frame.update_video_list()
             master.text_frame.print_text(len(master.video_frame.video_file_list))

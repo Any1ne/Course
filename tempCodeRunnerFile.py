@@ -1,2 +1,1 @@
-
-    def print_text(self, te
+#config['tangent'] = self.find_tanget()
