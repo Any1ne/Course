@@ -1,0 +1,10 @@
+# This file is used internally by FFMPEG.
+file 'file:H:/Programming/University/Course/media/videos/example_manim/1440p60/partial_movie_files/Newtons/3572009972_772329011_1927634772.mp4'
+file 'file:H:/Programming/University/Course/media/videos/example_manim/1440p60/partial_movie_files/Newtons/916560888_3255672059_591437168.mp4'
+file 'file:H:/Programming/University/Course/media/videos/example_manim/1440p60/partial_movie_files/Newtons/916560888_1704852926_1212615314.mp4'
+file 'file:H:/Programming/University/Course/media/videos/example_manim/1440p60/partial_movie_files/Newtons/916560888_3994192207_2785168355.mp4'
+file 'file:H:/Programming/University/Course/media/videos/example_manim/1440p60/partial_movie_files/Newtons/916560888_1704852926_4116825954.mp4'
+file 'file:H:/Programming/University/Course/media/videos/example_manim/1440p60/partial_movie_files/Newtons/916560888_967436748_1948296949.mp4'
+file 'file:H:/Programming/University/Course/media/videos/example_manim/1440p60/partial_movie_files/Newtons/916560888_1704852926_646595137.mp4'
+file 'file:H:/Programming/University/Course/media/videos/example_manim/1440p60/partial_movie_files/Newtons/916560888_403932712_2526637886.mp4'
+file 'file:H:/Programming/University/Course/media/videos/example_manim/1440p60/partial_movie_files/Newtons/916560888_1704852926_1862268825.mp4'

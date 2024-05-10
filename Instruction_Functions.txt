@@ -1,0 +1,27 @@
+1. Arithmetic Operations:
+    Addition: +
+    Subtraction: -
+    Multiplication: *
+    Division: /
+    Exponentiation: **
+
+2. Trigonometric Functions:
+    Sine: sin(x)
+    Cosine: cos(x)
+    Tangent: tan(x)
+    Arcsine: asin(x)
+    Arccosine: acos(x)
+    Arctangent: atan(x)
+
+3. Exponential and Logarithmic Functions:
+    Exponent: exp(x)
+    Base-10 Logarithm: log10(x)
+    Natural Logarithm: ln(x)
+
+4. Hyperbolic Functions:
+    Hyperbolic Sine: sinh(x)
+    Hyperbolic Cosine: cosh(x)
+    Hyperbolic Tangent: tanh(x)
+    Arctangent: asinh(x)
+    Arccosh: acosh(x)
+    Arctanh: atanh(x)
