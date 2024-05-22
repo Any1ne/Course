@@ -17,7 +17,7 @@ def write_PMFL():
     
     project_dir = os.path.dirname(os.path.abspath(__file__))  # Get project directory
 
-    file_path = os.path.join(project_dir, "media", "videos", "example_manim", quality, "partial_movie_files", method, "partial_movie_file_list.txt")
+    file_path = os.path.join(project_dir, "media", "videos", "anim", quality, "partial_movie_files", method, "partial_movie_file_list.txt")
 
     with open(file_path, 'r') as partial_list_file, \
             open('PMFL_'+method+'.txt', 'a') as pmfl_file:
@@ -28,26 +28,26 @@ def write_PMFL():
 def gap_run():
     with open('config.json') as f:
             config = json.load(f)
-    method = config['Method']
 
-    with open('PMFL_'+method+'.txt', 'w') as f:
-        f.write('')
+    isStop = config["Stop_Criteria"] or config["Stop_animation"]
 
-    stopCriteria = False
-    while not stopCriteria :
-        with open('config.json') as f:
-            config = json.load(f)
-
+    while not isStop:
         command_calculation = ["python", "methods.py"]
         process_calculation = subprocess.Popen(command_calculation)
         process_calculation.wait()
 
-        command_animation = ["manim", "-v", "WARNING", "anim.py", config['Method'], "-q"+config['Quality']]
-        process_animation = subprocess.Popen(command_animation)
-        process_animation.wait()
+        if not config["Stop_Criteria"]:
+            command_animation = ["manim", "-v", "WARNING", "anim.py", config['Method'], "-q"+config['Quality']]
+            process_animation = subprocess.Popen(command_animation)
+            process_animation.wait()
 
         write_PMFL()
-
-        stopCriteria = config["Stop_Criteria"] or (config["Iteration"]>=config["Number of Iteration"])
+        with open('config.json') as f:
+            config = json.load(f)
+        isStop = config["Stop_Criteria"] or config["Stop_animation"] or config["Sequence"]
+    
+    config["isFinished"] = True
+    with open('config.json', "w") as f:
+        json.dump(config, f)
 
 gap_run()
