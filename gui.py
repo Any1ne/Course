@@ -10,8 +10,8 @@ import os
 import subprocess
 import threading
 import time
-import pandas as pd
 import matplotlib.pyplot as plt
+import sys
 
 class GINM(ctk.CTk):
     def __init__(self):
@@ -75,7 +75,10 @@ class Video_frame(ctk.CTkFrame):
         self.default()
 
     def load_logo(self):
-        path_logo = "H:/Programming/University/Course/media/images/logo/ManimCELogo_ManimCE_v0.18.1.png"
+        project_dir = os.path.dirname(os.path.abspath(__file__))
+
+        path_logo = os.path.join(project_dir, "media", "images", "logo", "ManimCELogo_ManimCE_v0.18.1.png")
+
         if not os.path.exists(path_logo):
             logo = ["manim", "-v", "WARNING", "logo.py", "ManimCELogo", "-qh"]
             process_logo = subprocess.Popen(logo)
@@ -401,7 +404,7 @@ class Animation_frame(ctk.CTkFrame):
 
                     self.isanimated = True
                     self.anim_text  = "Stop Animate"
-                    command_gap = ["python", "gap.py"]
+                    command_gap = [sys.executable, "gap.py"]
                     self.gap_process = subprocess.Popen(command_gap)
 
                     self.monitor_thread = threading.Thread(target=fmt_run, args=(self.master,))
@@ -671,3 +674,4 @@ def test():
     test.info_frame.insert("end")
 
 test()
+

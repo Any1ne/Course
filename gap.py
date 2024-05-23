@@ -1,6 +1,7 @@
 import subprocess
 import json
 import os
+import sys
 
 def write_PMFL():
     with open('config.json') as f:
@@ -32,7 +33,7 @@ def gap_run():
     isStop = config["Stop_Criteria"] or config["Stop_animation"]
 
     while not isStop:
-        command_calculation = ["python", "methods.py"]
+        command_calculation = [sys.executable, "methods.py"]
         process_calculation = subprocess.Popen(command_calculation)
         process_calculation.wait()
 
