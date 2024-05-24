@@ -8,16 +8,16 @@ class Newtons(Scene):
     def construct(self):
         self.init()
 
-        if self.iter ==0:
+        if self.iter ==1:
           self.axes()
           self.function()
-          self.x()
+          self.create_X()
         else:
           self.continue_prev()
-        self.tangent()
-        self.update_x()
-        self.delete_old()
-        self.zoom_in()
+        # self.tangent()
+        # self.update_x()
+        # self.delete_old()
+        # self.zoom_in()
 
     def init(self):
         with open('config.json') as f:
@@ -62,7 +62,7 @@ class Newtons(Scene):
     def create_axes(self, y_min, y_max, y_step):
         self.ax = Axes(x_range=[self.xmin.get_value(), self.xmax.get_value(), self.xstep],
                   y_range=[y_min, y_max, y_step],
-                  y_axis_config={"include_numbers": True})
+                  y_axis_config={"include_numbers": True}).shift(LEFT)
         return self.ax
 
     def function(self):
@@ -70,7 +70,7 @@ class Newtons(Scene):
         self.ax.add(self.func)
         self.play(Create(self.func), run_time = 1)
 
-    def X(self):
+    def create_X(self):
         self.xi_label = self.ax.get_T_label(
             x_val=self.xi,
             graph=self.func, 
@@ -83,6 +83,15 @@ class Newtons(Scene):
             dot=True,
             direction=UR,
         )
+
+        x_var = Variable(self.xi, 'x', num_decimal_places=3)
+        fx_var = Variable(self.func_expr.subs('x', self.xi).evalf(), 'f(x)', num_decimal_places=3)
+        vg = Group(x_var, fx_var).arrange(DOWN)
+
+        vg.next_to(self.ax, RIGHT, buff=0.5)
+        self.add(x_var, fx_var)
+        self.play(x_var.tracker.animate.set_value(0), run_time=2,)
+
         self.play(Create(VGroup(self.xi_label, self.fxi_label)), run_time = 1)
 
     def continue_prev(self):

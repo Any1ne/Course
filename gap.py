@@ -37,12 +37,14 @@ def gap_run():
         process_calculation = subprocess.Popen(command_calculation)
         process_calculation.wait()
 
-        if not config["Stop_Criteria"]:
+        if not isStop:
             command_animation = ["manim", "-v", "WARNING", "anim.py", config['Method'], "-q"+config['Quality']]
             process_animation = subprocess.Popen(command_animation)
             process_animation.wait()
 
-        write_PMFL()
+            write_PMFL()
+
+        
         with open('config.json') as f:
             config = json.load(f)
         isStop = config["Stop_Criteria"] or config["Stop_animation"] or config["Sequence"]
