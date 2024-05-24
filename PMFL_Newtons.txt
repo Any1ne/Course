@@ -1,4 +1,8 @@
-/home/arthur/Course/Course/media/videos/anim/480p15/partial_movie_files/Newtons/1185818338_37006861_223132457.mp4
-/home/arthur/Course/Course/media/videos/anim/480p15/partial_movie_files/Newtons/624642324_2456164928_2845006315.mp4
-/home/arthur/Course/Course/media/videos/anim/480p15/partial_movie_files/Newtons/624642324_155173771_2846115812.mp4
-/home/arthur/Course/Course/media/videos/anim/480p15/partial_movie_files/Newtons/624642324_1366666244_3900413032.mp4
+/home/arthur/Course/Course/media/videos/anim/480p15/partial_movie_files/Newtons/1185818338_2078884575_223132457.mp4
+/home/arthur/Course/Course/media/videos/anim/480p15/partial_movie_files/Newtons/624642324_169668196_4077738076.mp4
+/home/arthur/Course/Course/media/videos/anim/480p15/partial_movie_files/Newtons/624642324_2139966967_225847345.mp4
+/home/arthur/Course/Course/media/videos/anim/480p15/partial_movie_files/Newtons/624642324_2301586597_2633608330.mp4
+/home/arthur/Course/Course/media/videos/anim/480p15/partial_movie_files/Newtons/1185818338_2078884575_223132457.mp4
+/home/arthur/Course/Course/media/videos/anim/480p15/partial_movie_files/Newtons/624642324_169668196_4077738076.mp4
+/home/arthur/Course/Course/media/videos/anim/480p15/partial_movie_files/Newtons/624642324_2139966967_225847345.mp4
+/home/arthur/Course/Course/media/videos/anim/480p15/partial_movie_files/Newtons/624642324_2301586597_2633608330.mp4

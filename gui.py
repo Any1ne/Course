@@ -95,20 +95,22 @@ class Video_frame(ctk.CTkFrame):
         if self.index!=None:
             self.master.info_frame.insert(str(self.index))
         if len(self.video_file_list) != 0:
+            if self.index < len(self.video_file_list)-1:
+                self.index += 1
+                self.stepB_b.configure(state = 'normal')
+                self.play_pause_b.configure(state = 'normal')
+            else:
+                self.master.info_frame.insert("END")
+                self.button_text = "Play"
+                self.play_pause_b.configure(state = 'disabled', text=self.button_text)
+                self.stepF_b.configure(state = 'disabled')
+                self.isplaying = False
+
             self.cap = cv2.VideoCapture(self.video_file_list[self.index])
             self.delay = int(1000 / self.cap.get(cv2.CAP_PROP_FPS))
 
             self.update()
 
-            if self.index < len(self.video_file_list)-2:
-                self.index += 1
-                self.stepB_b.configure(state = 'normal')
-            else:
-                self.master.info_frame.insert("END")
-                self.button_text
-                self.play_pause_b.configure(text=self.button_text)
-                self.stepF_b.configure(state = 'disabled')
-                self.isplaying = False
 
         else:
             self.master.info_frame.insert("video_file_list empty")
@@ -118,6 +120,7 @@ class Video_frame(ctk.CTkFrame):
             self.button_text = "Play"
         else:
             self.button_text = "Pause"
+
             if len(self.video_file_list) != 0:
                 self.update()
             else:
@@ -130,17 +133,28 @@ class Video_frame(ctk.CTkFrame):
         if self.index!=None:
             self.master.info_frame.insert(str(self.index))
         if len(self.video_file_list) != 0:
-            if self.index > 1:
+            if self.index > 0:
                 self.index -= 1
                 self.stepF_b.configure(state = 'normal')
+                self.play_pause_b.configure(state = 'normal')
             else:
                 self.master.info_frame.insert("Start")
                 self.stepB_b.configure(state = 'disabled')
-                self.isplaying = False
+
+            self.button_text = "Play"
+            self.isplaying = False
+            self.play_pause_b.configure(text = self.button_text)
 
             self.cap = cv2.VideoCapture(self.video_file_list[self.index])
             self.delay = int(1000 / self.cap.get(cv2.CAP_PROP_FPS))
-            self.update()
+            ret, frame = self.cap.read()
+            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            pil_image = Image.fromarray(frame)
+            self.image = ctk.CTkImage(pil_image, size=pil_image.size)
+            self.video.configure(image=self.image)
+            self.button_text = "Play"
+            self.isplaying = False
+            self.play_pause_b.configure(text = self.button_text)
         else:
             self.master.info_frame.insert("video_file_list empty")
         
