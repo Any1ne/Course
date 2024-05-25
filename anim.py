@@ -4,6 +4,8 @@ from sympy import *
 import json
 import math
 
+config.disable_caching = True
+
 class Newtons(Scene):
     def construct(self):
         self.init()
@@ -14,10 +16,10 @@ class Newtons(Scene):
           self.create_X()
         else:
           self.continue_prev()
-        # self.tangent()
-        # self.update_x()
-        # self.delete_old()
-        # self.zoom_in()
+        self.tangent()
+        self.update_x()
+        self.delete_old()
+        self.zoom_in()
 
     def init(self):
         with open('config.json') as f:
@@ -62,7 +64,7 @@ class Newtons(Scene):
     def create_axes(self, y_min, y_max, y_step):
         self.ax = Axes(x_range=[self.xmin.get_value(), self.xmax.get_value(), self.xstep],
                   y_range=[y_min, y_max, y_step],
-                  y_axis_config={"include_numbers": True}).shift(LEFT)
+                  y_axis_config={"include_numbers": True}).to_edge(LEFT)
         return self.ax
 
     def function(self):
