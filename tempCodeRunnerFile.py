@@ -1,2 +1,2 @@
 
-        with open('config.json') as f:
+        ax.plot(x_plot, y_plot, label='f(x)')

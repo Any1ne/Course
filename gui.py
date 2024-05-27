@@ -50,7 +50,7 @@ class Video_frame(ctk.CTkFrame):
         self.video_panel = ctk.CTkFrame(self)
         self.video_panel.grid(row=0, column=0, padx=(5,5), pady=(5,5), sticky="swe")
 
-        self.video = ctk.CTkLabel(self.video_panel, width=width, height=height)
+        self.video = ctk.CTkLabel(self.video_panel, text = None, width=width, height=height)
         self.video.grid(row=0, column=0, padx=(20,20), pady=(10,10), sticky="swe")
 
         self.load_logo()
@@ -89,16 +89,10 @@ class Video_frame(ctk.CTkFrame):
         self.video.configure(image=self.image)
 
     def play_mode(self):
-        pass
-
-    def preview(self):
-        self.cap = cv2.VideoCapture(self.video_file_list[self.index])
-        self.delay = int(1000 / self.cap.get(cv2.CAP_PROP_FPS))
-        ret, frame = self.cap.read()
-        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        pil_image = Image.fromarray(frame)
-        self.image = ctk.CTkImage(pil_image, size=pil_image.size)
-        self.video.configure(image=self.image)
+        if self.playmode_o.get() == "Full":
+            self.fullmode =True
+        else:
+            self.fullmode = False
 
     def stepF(self):
         if self.index!=None:
@@ -107,7 +101,10 @@ class Video_frame(ctk.CTkFrame):
             if self.index < len(self.video_file_list)-2:
                 self.stepB_b.configure(state = 'normal')
                 # self.play_pause_b.configure(state = 'normal')
-                self.index += 1
+                self.button_text = "Pause"
+                self.play_pause_b.configure(text=self.button_text)
+                self.isplaying = True
+                print("Forward", self.index)
                 self.next()
             else:
                 self.master.info_frame.insert("END")
@@ -130,7 +127,9 @@ class Video_frame(ctk.CTkFrame):
         else:
             self.button_text = "Pause"
             if len(self.video_file_list) != 0:
-                self.next()
+                self.cap = cv2.VideoCapture(self.video_file_list[self.index])
+                self.delay = int(1000 / self.cap.get(cv2.CAP_PROP_FPS))
+                self.update()
             else:
                 self.master.info_frame.insert("video_file_list empty")
         self.play_pause_b.configure(text=self.button_text)
@@ -156,6 +155,7 @@ class Video_frame(ctk.CTkFrame):
         self.isplaying = False
 
     def next(self):
+        self.index += 1
         self.preview()
         self.cap = cv2.VideoCapture(self.video_file_list[self.index])
         self.delay = int(1000 / self.cap.get(cv2.CAP_PROP_FPS))
@@ -165,6 +165,15 @@ class Video_frame(ctk.CTkFrame):
         self.index -= 1
         self.preview()
 
+    def preview(self):
+        print("Preview", self.index)
+        self.cap = cv2.VideoCapture(self.video_file_list[self.index])
+        self.delay = int(1000 / self.cap.get(cv2.CAP_PROP_FPS))
+        ret, frame = self.cap.read()
+        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        pil_image = Image.fromarray(frame)
+        self.image = ctk.CTkImage(pil_image, size=pil_image.size)
+        self.video.configure(image=self.image)
     def update(self):
         if self.isplaying:
             ret, frame = self.cap.read()
@@ -210,7 +219,7 @@ class Video_frame(ctk.CTkFrame):
         self.stepB_b.configure(state = 'normal')
 
     def default(self):
-        self.playmode_o.configure (state = 'disabled')
+        # self.playmode_o.configure (state = 'disabled')
         self.play_pause_b.configure(state = 'disabled')
         self.stepF_b.configure(state = 'disabled')
         self.stepB_b.configure(state = 'disabled')
@@ -412,7 +421,6 @@ class Animation_frame(ctk.CTkFrame):
                 if self.ischanged or not config["isFinished"]:
                     if config['Iteration'] == 0:
                         self.master.video_frame.load_logo()
-
 
                     config['Stop_Criteria'] = False
                     config["Stop_animation"] = False
@@ -632,12 +640,17 @@ class Info_frame(ctk.CTkFrame):
         y_plot = [f_x.subs('x', v) for v in x_plot]
 
         # Create the plot
-        plt.plot(x_plot, y_plot, label='f(x)')
+        fig, ax =plt.subplots()
 
-        plt.scatter(x_data, y_data, label='Data Points')
+        ax.spines['bottom'].set_position('zero')
+        ax.spines['left'].set_position('zero')
+
+        ax.plot(x_plot, y_plot, label='f(x)')
+
+        ax.scatter(x_data, y_data, label='Data Points')
 
         # Connect data points with a line
-        plt.plot(x_data, y_data, 'b-', label='Data Connection')
+        ax.plot(x_data, y_data, 'b-', label='Data Connection')
 
         plt.xlabel('x')
         plt.ylabel('f(x)')

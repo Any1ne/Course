@@ -41,7 +41,7 @@ class Newtons:
             x = self.xi
             f_prime_val = self.f_prime.subs('x', x).evalf()
             self.xi = x - self.f_val / f_prime_val
-            if abs(x-self.xi)<self.eps or self.iteration >= self.number_iteration:
+            if abs(x-self.xi)<self.eps or self.iteration > self.number_iteration:
                 self.criteria = True
 
     def update_config(self):
