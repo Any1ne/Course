@@ -59,7 +59,7 @@ class Video_frame(ctk.CTkFrame):
         self.control_panel.grid(row=1, column=0, padx=10, pady=10, sticky="swe")
 
         func_var = ctk.StringVar(value="Play mode")
-        self.playmode_o = ctk.CTkOptionMenu(self.control_panel, values=["Steps", "Full"], command=self.play_mode, variable=func_var)
+        self.playmode_o = ctk.CTkOptionMenu(self.control_panel, values=["Full", "Steps"], command=self.play_mode, variable=func_var)
         self.playmode_o.grid(row=1, column=3, padx=20, pady=20, sticky="se")
 
         self.button_text = "Play"
@@ -88,8 +88,8 @@ class Video_frame(ctk.CTkFrame):
         self.image = ctk.CTkImage(dark_image=self.logo, size=self.logo.size)
         self.video.configure(image=self.image)
 
-    def play_mode(self):
-        if self.playmode_o.get() == "Full":
+    def play_mode(self, choice):
+        if choice == "Full":
             self.fullmode =True
         else:
             self.fullmode = False
@@ -98,13 +98,15 @@ class Video_frame(ctk.CTkFrame):
         if self.index!=None:
             self.master.info_frame.insert(str(self.index))
         if len(self.video_file_list) != 0:
-            if self.index < len(self.video_file_list)-2:
+            if self.index < len(self.video_file_list)-1:
                 self.stepB_b.configure(state = 'normal')
                 # self.play_pause_b.configure(state = 'normal')
                 self.button_text = "Pause"
                 self.play_pause_b.configure(text=self.button_text)
                 self.isplaying = True
                 print("Forward", self.index)
+                self.index += 1
+                self.preview()
                 self.next()
             else:
                 self.master.info_frame.insert("END")
@@ -113,9 +115,10 @@ class Video_frame(ctk.CTkFrame):
                 self.play_pause_b.configure(state = 'disabled', text=self.button_text)
                 self.stepF_b.configure(state = 'disabled')
 
-            self.button_text = "Play"
-            self.isplaying = False
-            self.play_pause_b.configure(text = self.button_text)
+            if not self.fullmode:
+                self.button_text = "Play"
+                self.isplaying = False
+                self.play_pause_b.configure(text = self.button_text)
         else:
             self.master.info_frame.insert("video_file_list empty")
 
@@ -142,7 +145,9 @@ class Video_frame(ctk.CTkFrame):
             if self.index > 0:
                 self.stepF_b.configure(state = 'normal')
                 self.play_pause_b.configure(state = 'normal')
-                self.prev()
+                self.index -= 1
+                self.preview()
+
             else:
                 self.master.info_frame.insert("Start")
                 self.stepB_b.configure(state = 'disabled')
@@ -155,15 +160,9 @@ class Video_frame(ctk.CTkFrame):
         self.isplaying = False
 
     def next(self):
-        self.index += 1
-        self.preview()
         self.cap = cv2.VideoCapture(self.video_file_list[self.index])
         self.delay = int(1000 / self.cap.get(cv2.CAP_PROP_FPS))
         self.update()
-
-    def prev(self):
-        self.index -= 1
-        self.preview()
 
     def preview(self):
         print("Preview", self.index)
@@ -174,6 +173,7 @@ class Video_frame(ctk.CTkFrame):
         pil_image = Image.fromarray(frame)
         self.image = ctk.CTkImage(pil_image, size=pil_image.size)
         self.video.configure(image=self.image)
+
     def update(self):
         if self.isplaying:
             ret, frame = self.cap.read()
@@ -186,10 +186,13 @@ class Video_frame(ctk.CTkFrame):
                 self.master.after(self.delay, self.update)
             else:
                 self.cap.release()
-                self.button_text = "Play"
-                self.play_pause_b.configure(text = self.button_text)
-                self.isplaying = False
-                self.stepB_b.configure(state = 'normal')
+                if self.fullmode:
+                    self.stepF()
+                else:
+                    self.isplaying = False
+                    self.stepB_b.configure(state = 'normal')
+                    self.button_text = "Play"
+                    self.play_pause_b.configure(text = self.button_text)   
         else:
             self.master.after(self.delay, self.update)
 
@@ -227,6 +230,7 @@ class Video_frame(ctk.CTkFrame):
         self.load_logo()
         self.video_file_list = []
         self.isplaying = False
+        self.fullmode =True
         self.index = None
         self.button_text = "Play"
         self.play_pause_b.configure(text=self.button_text)
@@ -391,9 +395,11 @@ class Animation_frame(ctk.CTkFrame):
         "d2x": "",
         "tangent": "",
         #"xi-1": 0.0,
+        "x0": 1.0,
         "xi": 1.0,
         "xi+1": 0.0,
         #"f(xi-1)": 0.0,
+        "f(x0)": 0.0,
         "f(xi)": 0.0,
         "f(xi+1)": 0.0,
         "Eps": 0.01,
@@ -468,6 +474,7 @@ class Animation_frame(ctk.CTkFrame):
                 config = json.load(f)
 
             config['f(x)'] = self.master.config_frame.func_o.get() if self.master.config_frame.func_s.get() == "build-in" else self.master.config_frame.func_e.get()
+            config['x0'] = float(self.master.config_frame.xi_e.get())
             config['xi'] = float(self.master.config_frame.xi_e.get())
             config['Eps'] = float(self.master.config_frame.eps_e.get())
             config['Rest'] = [float(self.master.config_frame.resta_e.get()), float(self.master.config_frame.restb_e.get())]

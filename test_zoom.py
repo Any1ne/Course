@@ -62,24 +62,26 @@ class ChangingZoomScale(ZoomedScene):
     
     def function(self):
         self.func =  self.ax.plot(lambda x: self.func_expr.subs('x', x), x_range=[self.xmin.get_value(), self.xmax.get_value()], color=BLUE).set_stroke(width=1)
+        self.clip(self.func, self.ax)
         self.ax.add(self.func)
         self.play(Create(self.func), run_time = 1)
-
-    def update_axes(self, ax):
-        # Re-create the axes with updated ranges
-        new_ax = self.create_axes(self.ymin.get_value(), self.ymax.get_value(), self.ystep.get_value())
-            
-        # Create self.a new graph for the updated axes
-        self.func = new_ax.plot(lambda x: self.func_expr.subs('x', x), x_range=[self.xmin.get_value(), self.xmax.get_value()], use_smoothing=True, color=RED)
-        new_ax.add(self.func)
-        
-        ax.become(new_ax)
 
     def create_axes(self, y_min, y_max, y_step):
         self.ax = Axes(x_range=[self.xmin.get_value(), self.xmax.get_value(), self.xstep],
                   y_range=[y_min, y_max, y_step],
                   y_axis_config={"include_numbers": True}).scale(0.5).to_edge(LEFT)
         return self.ax
+    
+    def clip(self, curve, axes):
+        points = curve.points
+        x_min, x_max = axes.x_range[:2]
+        y_min, y_max = axes.y_range[:2]
+        for i in range(0,len(points), 4):
+            p_start, c_1, c2, p_end = points[i:i+4]
+            p1 = axes.p2c(p_start)
+            p2 = axes.p2c(p_end)
+            if any(p[0] < x_min or p[0] > x_max or p[1] < y_min or p[1] > y_max for p in [p1, p2]):
+                points[i:i+4] = [np.array([0,0,0])]*4
     
     def create_tangent(self):
         self.tangent = self.ax.plot(lambda x:  self.tang_expr.subs('x', x), x_range=[-5, 5])

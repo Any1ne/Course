@@ -9,7 +9,7 @@ class Newtons:
 
         self.func_str = config['f(x)']
         if config['Iteration'] == 0:
-            self.xi = config['xi']
+            self.xi = config['x0']
         else:
             self.xi = config['xi+1']
         self.eps = config['Eps']
@@ -52,6 +52,7 @@ class Newtons:
             config['dx'] = str(self.f_prime)
             config['d2x'] = str(self.f_sec_prime)
             config['f(xi)'] = float(self.f_val)
+            config['f(x0)'] = float(self.f_val)
         else:
             config['xi'] = config['xi+1']
             config['f(xi)'] = config['f(xi+1)']
