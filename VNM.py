@@ -19,7 +19,6 @@ def main():
         os.remove("config.json")
     except FileNotFoundError:
         print("One of the deleting file not found.")
-
     try:
         current_dir = os.path.dirname(__file__)
         media_folder = os.path.join(current_dir, "media")   

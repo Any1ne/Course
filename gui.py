@@ -45,6 +45,8 @@ class VNM(ctk.CTk):
         self.info_frame = Info_frame(self, height = 200, width =200)
         self.info_frame.grid(row=2, column=1, padx=10, pady=10, sticky="nswe")
 
+        self.gap_process = None
+
 class Video_frame(ctk.CTkFrame):
     def __init__(self, master=None, width=100, height=100, **kwargs):
         super().__init__(master, **kwargs)
@@ -126,8 +128,11 @@ class Video_frame(ctk.CTkFrame):
         self.image = ctk.CTkImage(dark_image=self.logo, size=self.logo.size)
         self.video.configure(image=self.image)
 
-    def play_mode(self):
-        pass
+    def play_mode(self, choice):
+        if choice == "Full":
+            self.fullmode =True
+        else:
+            self.fullmode = False
 
     def stepF(self):
         self.stepF_b.configure(state = 'disabled')
@@ -142,8 +147,9 @@ class Video_frame(ctk.CTkFrame):
                     self.isplaying = True
                     self.next()
             else:
-                self.master.info_frame.insert("END")
                 self.play_pause_b.configure(state = 'disabled')
+                self.stepF_b.configure(state = 'disabled')
+
 
             self.isplaying = False
             self.play_pause_b.configure(text = "▶")
@@ -158,7 +164,7 @@ class Video_frame(ctk.CTkFrame):
             button_text = "▶"
         else:
             button_text = "⏸"
-            if len(self.video_file_list) != 0 and self.index >= 0 and self.index < len(self.video_file_list) :
+            if len(self.video_file_list) != 0 and 0<=self.index <= len(self.video_file_list):
                 self.cap = cv2.VideoCapture(self.video_file_list[self.index])
                 self.delay = int(1000 / self.cap.get(cv2.CAP_PROP_FPS))
                 self.update()
@@ -176,7 +182,8 @@ class Video_frame(ctk.CTkFrame):
                 self.play_pause_b.configure(state = 'normal')
                 self.preview()
             else:
-                self.master.info_frame.insert("Start")
+                self.stepB_b.configure(state = 'disabled')
+
                 
             self.isplaying = False
             self.play_pause_b.configure(text = "▶")
@@ -203,9 +210,6 @@ class Video_frame(ctk.CTkFrame):
         self.preview()
 
     def preview(self):
-        # print("Preview", self.index)
-        # if hasattr(self, "cap"):
-        #     self.cap.release()
         self.cap = cv2.VideoCapture(self.video_file_list[self.index])
         ret, frame = self.cap.read()
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
@@ -219,13 +223,8 @@ class Video_frame(ctk.CTkFrame):
             ret, frame = self.cap.read()
             if ret:
                 frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                # Convert frame to PIL Image
                 pil_image = Image.fromarray(frame)
-
-                # Create CTkImage from PIL Image
                 self.image = ctk.CTkImage(pil_image, size=pil_image.size)
-
-                # Set CTkImage to video panel
                 self.video.configure(image=self.image)
                 self.master.after(self.delay, self.update)
             else:
@@ -235,7 +234,6 @@ class Video_frame(ctk.CTkFrame):
                     self.next()
                 else:
                     self.isplaying = False
-                    # self.stepB_b.configure(state = 'normal')
                     self.play_pause_b.configure(text = "▶")   
         else:
             self.master.after(self.delay, self.update)
@@ -243,12 +241,14 @@ class Video_frame(ctk.CTkFrame):
     def load_video_list(self):
         self.video_file_list = self.get_video_files()
         self.index = 0
-        # insert(self.video_file_list)
-        # insert(self.index)
         if hasattr(self, "cap"):
             self.cap.release()
-        self.cap = cv2.VideoCapture(self.video_file_list[self.index])
-        self.delay = int(1000 / self.cap.get(cv2.CAP_PROP_FPS))  
+        try:
+            self.cap = cv2.VideoCapture(self.video_file_list[self.index])
+            self.delay = int(1000 / self.cap.get(cv2.CAP_PROP_FPS))
+        except IndexError:
+            self.deactivate()
+            print("Error: list index out of range") 
 
     def update_video_list(self):
         if len(self.video_file_list) == 0:
@@ -270,13 +270,16 @@ class Video_frame(ctk.CTkFrame):
         return video_file_list
     
     def activate(self):
-        self.playmode_o.configure (state = 'normal')
         self.play_pause_b.configure(state = 'normal')
         self.stepF_b.configure(state = 'normal')
         self.stepB_b.configure(state = 'normal')
 
+    def deactivate(self):
+        self.play_pause_b.configure(state = 'disabled')
+        self.stepF_b.configure(state = 'disabled')
+        self.stepB_b.configure(state = 'disabled')
+
     def default(self):
-        self.playmode_o.configure (state = 'disabled')
         self.play_pause_b.configure(state = 'disabled')
         self.stepF_b.configure(state = 'disabled')
         self.stepB_b.configure(state = 'disabled')
@@ -284,8 +287,10 @@ class Video_frame(ctk.CTkFrame):
         self.load_logo()
         self.video_file_list = []
         self.isplaying = False
+        self.fullmode =True
         self.index = None
-        self.play_pause_b.configure(text="▶")
+        self.button_text = "Play"
+        self.play_pause_b.configure(text=self.button_text)
 
 class Config_frame(ctk.CTkScrollableFrame):
     def __init__(self, master, **kwargs):
@@ -446,13 +451,11 @@ class Animation_frame(ctk.CTkFrame):
         if not self.isanimated:
             if self.isvalid:
                 if not config["Stop_Criteria"] :
-                    # print("Changed", self.ischanged)
                     if self.ischanged:
                         self.master.info_frame.insert("Rendering new animation\n")
                         self.master.video_frame.load_logo()
                     else:
                         self.master.info_frame.insert("Continue rendering animation\n")
-
 
                     config["Stop_animation"] = False
                     config["isFinished"] = False
@@ -464,7 +467,6 @@ class Animation_frame(ctk.CTkFrame):
                     self.ischanged = False
                     self.anim_text  = "Stop rendering animation"
                     self.master.gap_process = threading.Thread(target=gap_run, args=(self.master,))
-                    # self.master.gap_process = threading.Thread(target=gap_run, args=(self.master,))
                     self.master.gap_process.start()
                 elif os.stat('PMFL_'+config['Method']+'.txt').st_size !=0:
                     self.master.info_frame.insert("Loading animation\n")
@@ -478,14 +480,14 @@ class Animation_frame(ctk.CTkFrame):
             
             self.master.animation_process.kill()
             self.master.calculation_process.kill()
-           
+
             method = config['Method']
             with open ('PMFL_'+method+'.txt', 'w') as pmfl_file:
                 pmfl_file.write("")
 
             self.isanimated = False
             self.anim_text  = "Animate"
-
+            
         self.anim_b.configure(text=self.anim_text)
 
         config["Stop_animation"] = False
@@ -758,7 +760,7 @@ class Info_frame(ctk.CTkFrame):
 
 def gap_run(master):
     with open('config.json') as f:
-            config = json.load(f)
+        config = json.load(f)
 
     isStop = config["Stop_Criteria"] or config["Stop_animation"]
     size = 0
@@ -768,7 +770,7 @@ def gap_run(master):
     iter = config["Iteration"]
 
     master.info_frame.insert(f"Initial approximation:")
-    master.info_frame.insert(f"x{iter}: {x} | f(x{iter}): {fx} \n")    
+    master.info_frame.insert(f"x{iter}: {x} | f(x{iter}): {fx}\n")
 
     while not isStop:
         pr = cProfile.Profile()
@@ -783,45 +785,41 @@ def gap_run(master):
             x = config["xi+1"]
             fx = config["f(xi+1)"]
             iter = config["Iteration"]
-            
+
             master.info_frame.insert(f"Iteration of calculation {iter} complete:")
-            master.info_frame.insert(f"x{iter}: {x} | f(x{iter}): {fx} ")    
-            
-            iter = config["Iteration"]
-            
+            master.info_frame.insert(f"x{iter}: {x} | f(x{iter}): {fx}\n")
+
             if not isStop:
                 command_animation = ["manim", "-v", "WARNING", "anim.py", config['Method'], "-q"+config['Quality']]
                 master.animation_process = subprocess.Popen(command_animation)
-
                 master.animation_process.wait()
 
                 master.info_frame.insert(f"Animation {iter} complete\n")
 
                 with open('config.json') as f:
                     config = json.load(f)
-
                 if not config["Stop_animation"]:
                     write_PMFL()
-                    master.video_frame.update_video_list()
                     master.video_frame.activate()
+                    master.video_frame.update_video_list()
 
             with open('config.json') as f:
                 config = json.load(f)
             isStop = config["Stop_Criteria"] or config["Stop_animation"] or config["Sequence"]
-            
+
         pr.disable()
         pr.dump_stats('cprofile_results')
         size = memory_analyse(size)
-        
-        with open('cprofiling_results.txt', 'a') as file: 
+
+        with open('cprofiling_results.txt', 'a') as file:
             file.write(f"Iteration {iter} - Profile Statistics:\n")
             profile = pstats.Stats('cprofile_results', stream=file)
             profile.print_stats()
             file.close()
 
     master.animation_frame.isanimated = False
-    master.animation_frame.anim_b.configure(text="Animated")
-    if config["Stop_Criteria"]: 
+    master.animation_frame.anim_b.configure(text="Animate")
+    if config["Stop_Criteria"]:
         master.info_frame.insert("Finished!!!")
 
 def write_PMFL():
@@ -840,12 +838,14 @@ def write_PMFL():
     project_dir = os.path.dirname(os.path.abspath(__file__))  # Get project directory
 
     file_path = os.path.join(project_dir, "media", "videos", "anim", quality, "partial_movie_files", method, "partial_movie_file_list.txt")
-
-    with open(file_path, 'r') as partial_list_file, \
-            open('PMFL_'+method+'.txt', 'a') as pmfl_file:
-            for line in partial_list_file:
-                if line.startswith('file \'file:'):
-                    pmfl_file.write(line[11:-2]+ '\n')   
+    try:
+        with open(file_path, 'r') as partial_list_file, \
+                open('PMFL_'+method+'.txt', 'a') as pmfl_file:
+                for line in partial_list_file:
+                    if line.startswith('file \'file:'):
+                        pmfl_file.write(line[11:-2]+ '\n')   
+    except FileNotFoundError:
+        print(f"Error: The file at {file_path} was not found.")
 
 def memory_analyse(size):
     with open('config.json') as f:
