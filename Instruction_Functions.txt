@@ -1,3 +1,5 @@
+SUPPORTED MATHEMATICAL FUNCTIONS:
+
 1. Arithmetic Operations:
     Addition: +
     Subtraction: -
@@ -25,3 +27,10 @@
     Arctangent: asinh(x)
     Arccosh: acosh(x)
     Arctanh: atanh(x)
+
+SUPPORTED CONSTANS:
+1. PI (pi: 3.14159)
+2. Base of thenatural logarithm (E: 2.71828)
+3. Golden ratio (phi: 1.61803)
+4. Euler’s constant (euler: 0.577216)
+5. Catalan’s constant (catalan: 0.915966)

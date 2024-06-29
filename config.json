@@ -1,1 +1,0 @@
-{"f(x)": "x**2+2*x+1", "dx": "2*x + 2", "d2x": "2", "tangent": "1.5*x + 0.9375", "xi": -0.25, "xi+1": -0.625, "f(xi)": 0.5625, "f(xi+1)": 0.140625, "Eps": 0.01, "Rest": [-1.0, 1.0], "Method": "Newtons", "Quality": "l", "Iteration": 2, "Number of Iteration": 10, "Stop_Criteria": false, "Stop_animation": false, "Sequence": true, "isFinished": true}
